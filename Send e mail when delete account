@@ -1,0 +1,17 @@
+// // Send an confirmation Email to the User, When ever user delete an Account. How to acheive it ?
+trigger DeleteAccountTrigger on Account (after delete) {
+    if(Trigger.isAfter && Trigger.isDelete){
+      List< Messaging.SingleEmailMessage> MailList = new List< Messaging.SingleEmailMessage>();
+        for(Account deletedacc: Trigger.old){
+           Messaging.SingleEmailMessage mymail = new Messaging.SingleEmailMessage();
+               List<string> userEmails = new List<string>();
+                  userEmails.add(Userinfo.getUserEmail());
+                     mymail.setToAddresses(userEmails);
+                        mymail.setSubject('Account has been sucessfully deleted' + deletedacc.Name);
+                          mymail.setPlainTextBody('This email has been sent for deleting ' + deletedacc.Name);
+                             MailList.add(mymail);
+        }
+        Messaging.sendEmail( MailList);
+    }
+
+}
