@@ -1,0 +1,18 @@
+//trigger with an error message if there are multiple new Account records with the same name:
+
+trigger accountTrigger on Account (before insert,before update) {
+    if (Trigger.isBefore && (Trigger.isInsert || Trigger.isUpdate)){
+ Set<String> accountNames = new Set<String>();
+    for(Account acc : Trigger.new) {
+        accountNames.add(acc.Name);
+    }
+    List<Account> existingAccounts = [SELECT Name FROM Account WHERE Name IN :accountNames];
+    for(Account acc : Trigger.new) {
+        for(Account existing : existingAccounts) {
+            if(acc.Name == existing.Name) {
+                acc.Name.addError('Name already exists');
+            }
+        }
+    }
+}
+}
