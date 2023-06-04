@@ -1,0 +1,19 @@
+// Account records should have a field named ' Recent opportunity Amount' it should contain 
+the opportunity amount of the latest created opportunity on account.
+trigger recentAmountoppTrigger on Opportunity (after insert) {
+    
+    if(trigger.isAfter&&trigger.isInsert){
+        List<account> AccList = new  List<account>();
+        for(Opportunity opp:Trigger.new){
+            if(opp.Amount!= null&& opp.AccountId!=null){
+            Account acc = new Account();
+            acc.Recent_Opportunity_Amount__c =opp.Amount;
+            acc.Id =opp.AccountId; 
+             AccList.add(acc);
+            }
+          
+           }
+        if(!AccList.isEmpty()){
+              update AccList;
+        }
+    }
