@@ -1,0 +1,17 @@
+trigger RestoredAccountTrigger on Account (after undelete) {
+     List< Messaging.SingleEmailMessage> MailList = new List< Messaging.SingleEmailMessage>();
+    if(Trigger.İsAfter && Trigger.İsUndelete){
+       for(Account Restoredacc: Trigger.new){
+           Messaging.SingleEmailMessage mymail = new Messaging.SingleEmailMessage();
+               List<string> userEmails = new List<string>();
+                  userEmails.add(Userinfo.getUserEmail());
+                     mymail.setToAddresses(userEmails);
+                        mymail.setSubject('Account has been sucessfully restored' + Restoredacc.Name);
+                          mymail.setPlainTextBody('This email has been sent for restored ' + Restoredacc.Name);
+                             MailList.add(mymail);
+        }
+        Messaging.sendEmail( MailList);
+            
+        }
+        
+    }
