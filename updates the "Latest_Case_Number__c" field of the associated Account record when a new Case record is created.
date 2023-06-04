@@ -1,0 +1,26 @@
+// This trigger updates the "Latest_Case_Number__c" field of the associated Account record
+when a new Case record is created. To adapt this code to the Account object and 
+add the trigger to the Case object, you need to make the following modifications.
+Additionally, you will need to configure and enable the trigger in the Salesforce environment for testing:
+
+trigger CaseTrigger on Case (after insert) {
+
+    if(trigger.isAfter && trigger.isInsert){
+        List<Account> accList = new List<Account>();
+        for(Case cs : Trigger.new){
+            if(cs.AccountId!=null){
+                account acc = new Account();
+                 acc.Latest_Case_Number__c =cs.CaseNumber;
+                  acc.Id = cs.AccountId ;
+                 
+        }
+        
+    }
+        if(!accList.isEmpty()){
+               update accList;
+            
+        }
+     
+         
+}
+}
