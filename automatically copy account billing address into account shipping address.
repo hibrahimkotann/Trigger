@@ -1,0 +1,17 @@
+//When an account insert and CopyBillingto_Shipping__c checkbox is checked then 
+automatically copy account billing address into account shipping address.
+
+trigger coppyBillingAccountTrigger on Account (before insert, before update) {
+    if(Trigger.isBefore && Trigger.isInsert || Trigger.isUpdate){
+        for(Account acc : Trigger.new){
+            if(acc.CopyBillingto_Shipping__c ){
+               acc.ShippingStreet = acc.BillingStreet;
+               acc.ShippingCity = acc.BillingCity ;
+                acc.ShippingCountry =acc.BillingCountry;
+                acc.ShippingState = acc.BillingState;
+                acc.ShippingPostalCode =acc.BillingPostalCode;
+            }
+        }
+        
+    }
+}
