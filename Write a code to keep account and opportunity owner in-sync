@@ -1,0 +1,18 @@
+// When opportunity is created, set owner id as related account owner id.
+
+trigger opportunityDemotrigger on Opportunity (before insert) {
+    if(trigger.isbefore){
+        if(trigger.isinsert){
+            set<id> relatedaccountIds = new set<id>();
+            for(opportunity opp : trigger.new){
+                relatedaccountIds.add(opp.accountId);
+            }
+            map<id,account> accMap = new map<id,account>([select id,ownerid from account where id IN :relatedaccountIds]);
+            
+            for(opportunity opp : trigger.new){
+                opp.ownerId = accMap.get(opp.accountId).ownerId;
+            }
+            
+        }
+    }
+}
