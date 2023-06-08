@@ -1,0 +1,24 @@
+
+// When account owner is updated set the new owner as opportunity owner on all related opportunities
+trigger accountDemotrigger on Account (after update) {
+    if(trigger.isafter){
+        if(trigger.isupdate){
+            set<id> accountIds = new set<id>();
+            for(account acc : trigger.new){
+                if(acc.ownerId != trigger.oldmap.get(acc.id).ownerId){
+                    accountIds.add(acc.id);
+                }
+            }
+            
+            list<opportunity> oppList = new list<opportunity>();            
+            for(opportunity opp : [select id,ownerId,accountId from opportunity where accountId IN :accountIds]){
+                opp.ownerId = trigger.newmap.get(opp.accountId).ownerId;
+                oppList.add(opp);
+            }
+            
+            if(oppList.size() > 0)update oppList;
+            
+        }
+    }
+
+}
