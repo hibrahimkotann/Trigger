@@ -1,0 +1,20 @@
+//When ever Contact getting ' deleted ' we need to decrement the valu on account record whic is No_of_Contacts__c..
+
+trigger DeletecontactTrigger on Contact (After Delete) {
+ if(Trigger.isAfter&&Trigger.isDelete){
+      set<Id> accIds = new set<Id>();
+           for(Contact cnt :Trigger.old){
+               accIds.add(cnt.AccountId);
+           }
+        List<Account> accofRelatedContact = [SELECT Id,No_of_Contacts__c,(SELECT Id FROM Contacts) FROM Account WHERE Id IN :accIds];
+        for(Account acc :accofRelatedContact ){
+            acc.No_of_Contacts__c =acc.Contacts.size();
+        }
+        
+         Update accofRelatedContact;
+            
+        }
+        
+    }
+
+     
