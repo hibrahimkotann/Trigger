@@ -1,0 +1,17 @@
+// Create a field 'No_of_Contacts__c' and when ever a contact created then add field number of No_of_Contacts__c on Account
+trigger contactTrigger on Contact (After insert) {
+    if(Trigger.isAfter&&Trigger.isInsert){
+        set<Id> accIds = new set<Id>();
+           for(Contact cnt :Trigger.new){
+               accIds.add(cnt.AccountId);
+           }
+        List<Account> accofRelatedContact = [SELECT Id,No_of_Contacts__c,(SELECT Id FROM Contacts) FROM Account WHERE Id IN :accIds];
+        for(Account acc :accofRelatedContact ){
+            acc.No_of_Contacts__c =acc.Contacts.size();
+        }
+        
+         Update accofRelatedContact;
+            
+        }
+        
+    }
