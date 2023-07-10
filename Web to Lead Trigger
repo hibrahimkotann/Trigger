@@ -1,0 +1,12 @@
+trigger LeadAutoPopulateState on Lead (before insert,before update) {
+    if((Trigger.isBefore) &&( Trigger.isInsert)|| (Trigger.isUpdate)){
+           for (Lead led : Trigger.new) {
+        if (led.State__c!= null) {
+           led.State = led.State__c;
+           
+        }        
+    }
+   
+    }
+    
+}
