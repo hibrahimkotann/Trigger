@@ -1,0 +1,44 @@
+trigger AccountWonOpportunityTrigger on Opportunity (after insert, after update) {
+    Set<Id> accountIds = new Set<Id>();
+
+    // Collect the Account IDs related to the Opportunities
+    for (Opportunity opp : Trigger.new) {
+        if (opp.StageName == 'Closed Won' && opp.AccountId != null) {
+            accountIds.add(opp.AccountId);
+        }
+    }
+
+    // Query the count of Closed Won Opportunities for each Account
+    Map<Id, Integer> accountOpportunityCounts = new Map<Id, Integer>();
+
+    for (AggregateResult aggResult : [
+        SELECT AccountId, COUNT(Id) wonCount
+        FROM Opportunity
+        WHERE AccountId IN :accountIds AND StageName = 'Closed Won'
+        GROUP BY AccountId
+    ]) {
+        Id accountId = (Id)aggResult.get('AccountId');
+        Integer wonCount = Integer.valueOf(aggResult.get('wonCount'));
+        accountOpportunityCounts.put(accountId, wonCount);
+    }
+
+    List<Account> accountsToUpdate = new List<Account>();
+    for (Opportunity opp : Trigger.new) {
+        if (accountOpportunityCounts.containsKey(opp.AccountId)) {
+            Integer wonOpportunityCount = accountOpportunityCounts.get(opp.AccountId);
+            Account acc = new Account(Id = opp.AccountId);
+            if (wonOpportunityCount <= 3) {
+                acc.Rating = 'Cold';
+            } else if (wonOpportunityCount < 10) {
+                acc.Rating = 'Warm';
+            } else {
+                acc.Rating = 'Hot';
+            }
+            accountsToUpdate.add(acc);
+        }
+    }
+
+    if (!accountsToUpdate.isEmpty()) {
+        update accountsToUpdate;
+    }
+}
