@@ -1,0 +1,14 @@
+/*Write a trigger on account and check only system administrator profile users should be able to delete an account */
+trigger AccountdeleteTrigger on Account (before delete) {
+    if(Trigger.isBefore && Trigger.isDelete){
+Profile p = [SELECT Id, Name FROM Profile Where Name = 'System Administrator'];
+        for(Account acc : Trigger.old){
+            if(UserInfo.getProfileId()!=p.Id){
+                acc.addError('You dont have permission to delete an Account, please contact System Administrator.');
+
+            }
+        }
+
+    }
+   
+}
