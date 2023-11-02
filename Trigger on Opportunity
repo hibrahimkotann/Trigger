@@ -1,0 +1,59 @@
+/*room division manager wants to see the total number of each guest’s closed won opportunities on the guest layout.
+User Acceptance Criteria:
+•	Create a trigger runs on the update of an ‘Individual Guest’ opportunity.
+*** Please update the trigger handler with future method as a best practice.*/
+
+trigger OpportunityTrigger on Opportunity (After update) {
+    
+       System.debug('OpportunityTrigger has been called.');
+    
+
+    if(Trigger.isAfter && Trigger.isUpdate ){
+        
+     OpportunityTriggerHandler.updateClosedWonOppsNumber(Trigger.new, Trigger.oldMap);       
+    }
+
+}
+ /*the trigger handler with future method as a best practice.*/
+
+
+public class OpportunityTriggerHandler {
+   
+    public static void updateClosedWonOppsNumber(List<Opportunity> listopp, Map<Id,Opportunity> mapOpp ){
+        try{
+        set<String> setOpp = new Set<String>();
+         set<String> setGuest = new Set<String>();
+        List<Guest__c> listGuest = new  List<Guest__c>();
+        String devRecordTypeId = Schema.SObjectType.Opportunity.getRecordTypeInfosByDeveloperName().get('Individual_Guest').getRecordTypeId();
+        for( Opportunity opp : listopp){
+            if (opp.IsWon && opp.StageName != mapOpp.get(opp.Id).StageName && opp.RecordTypeId == devRecordTypeId){
+                 System.debug('Condition met for Opportunity: ' + opp.Name);
+                setOpp.add(opp.Id);
+                            
+            }
+            
+        }
+        if (setOpp.size() >0 && setOpp != null){
+            List<Opp_Guest_Intermediate_No__c> listInter = [SELECT Id, 	Guest__c FROM Opp_Guest_Intermediate_No__c WHERE Opportunity__c IN : setOpp];
+            if (listInter.size()>0 && listInter != null){
+                for(Opp_Guest_Intermediate_No__c inter : listInter){
+                    setGuest.add(inter.Guest__c);
+                }
+            } 
+            for( Guest__c gst : [ SELECT Id,Number_of_Closed_Won_Reservations__c FROM Guest__c WHERE Id IN : setGuest]){
+                Decimal numberOfClosedVisit = gst.Number_of_Closed_Won_Reservations__c == null ? 0 :gst.Number_of_Closed_Won_Reservations__c;
+                gst.Number_of_Closed_Won_Reservations__c= numberOfClosedVisit + 1;
+                listGuest.add(gst);
+            }
+            
+            Database.update(listGuest);
+        }               
+        
+        } catch(Exception e){
+            System.debug ( 'Exception catched ::' +e.getMessage());
+        }
+    System.debug('OpportunityTrigger has finished.');
+} 
+    
+
+}
