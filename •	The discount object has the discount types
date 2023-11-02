@@ -1,0 +1,50 @@
+
+•	The discount object has the discount types. If it is ‘raw amount, the ‘discount amount’ field value is ‘raw amount’,
+it will be directly populated. If it is ‘percent’, we need to calculate the net discount amount with the opportunity
+amount.
+
+
+
+trigger DiscountTrigger on Discount__c (before insert, before update) {
+       if(Trigger.isBefore){ if(Trigger.isInsert ||
+             Trigger.isUpdate){
+
+            DiscountTriggerHandler.UpdateDiscountAmount(Trigger.new,  Trigger.oldMap);
+        }
+      }
+     }
+
+Handlerr Class.....
+public class DiscountTriggerHandler {
+    
+    public static void UpdateDiscountAmount(List<Discount__c> listDisc, Map<Id,	Discount__c> mapDisc){
+        
+        try{
+      Set<Id> oppIds = new Set<Id>();  
+        for(Discount__c disc :listDisc ){
+            oppIds.add(disc.Opportunity__c);
+        }
+        
+    
+        Map<Id,Opportunity> mapOPP = new Map<Id,Opportunity>([SELECT Id, Amount FROM Opportunity WHERE Id IN : oppIds]);
+        
+        for(Discount__c disc :listDisc ){
+            if(String.isNotBlank(disc.Discount_Type__c)
+               && disc.Discount_Amount__c != null && (mapDisc == null
+                || disc.Discount_Type__c != mapDisc.get(disc.Id).Discount_Type__c)){ 
+                        
+              if(disc.Discount_Type__c=='Raw Amount'){ 
+                  disc.Net_Discount__c = disc.Discount_Amount__c;
+                  
+           }else{
+                  disc.Net_Discount__c = (mapOpp.get(disc.Opportunity__c).Amount * disc.Discount_Amount__c) / 100;
+    }
+   }
+    
+       }
+        }catch(Exception e){
+       System.debug('Error occured:' + e.getMessage());
+       }
+}
+
+}
